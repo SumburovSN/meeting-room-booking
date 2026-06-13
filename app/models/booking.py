@@ -1,19 +1,19 @@
 from sqlalchemy import Integer, Date, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-
+from datetime import date
 from app.core.database import Base
 
 
 class Booking(Base):
     __tablename__ = "bookings"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
 
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
-    room_id: Mapped[int] = mapped_column(ForeignKey("rooms.id"), nullable=False)
-    time_slot_id: Mapped[int] = mapped_column(ForeignKey("time_slots.id"), nullable=False)
+    room_id: Mapped[int] = mapped_column(ForeignKey("rooms.id", ondelete="CASCADE"), nullable=False)
+    time_slot_id: Mapped[int] = mapped_column(ForeignKey("time_slots.id", ondelete="CASCADE"), nullable=False)
 
-    booking_date: Mapped[Date] = mapped_column(Date, nullable=False)
+    booking_date: Mapped[date] = mapped_column(Date, nullable=False, index=True)
 
     user = relationship("User", back_populates="bookings")
     room = relationship("Room", back_populates="bookings")

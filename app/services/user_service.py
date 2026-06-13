@@ -4,12 +4,10 @@ from app.repositories.user_repository import UserRepository
 from app.services.exceptions import (
     UserAlreadyExistsError,
     UserNotFoundError,
-    ForbiddenOperationError,
 )
 
 
 class UserService:
-
     def __init__(self, repository: UserRepository):
         self.repository = repository
 
@@ -21,40 +19,31 @@ class UserService:
 
         if user is None:
             raise UserNotFoundError()
-
         return user
 
-    def create_employee(
-        self,
-        email: str,
-        password: str,
-    ) -> User:
+    def get_by_email(self, user_email: str) -> User:
+        user = self.repository.get_by_email(email=user_email)
 
+        if user is None:
+            raise UserNotFoundError()
+        return user
+
+    def create_employee(self, email: str, password: str) -> User:
         if self.repository.get_by_email(email):
             raise UserAlreadyExistsError()
-
         user = User(
             email=email,
             hashed_password=hash_password(password),
             role=UserRole.employee,
             is_active=True,
         )
-
         return self.repository.create(user)
 
-    def update_user(
-        self,
-        user: User,
-        email: str | None,
-        password: str | None,
-    ) -> User:
-
+    def update_user(self, user: User, email: str | None, password: str | None) -> User:
         if email is not None:
             existing_user = self.repository.get_by_email(email)
-
             if existing_user is not None and existing_user.id != user.id:
                 raise UserAlreadyExistsError()
-
             user.email = email
 
         if password is not None:
@@ -68,5 +57,5 @@ class UserService:
     ) -> User:
 
         user.is_active = False
-
         return self.repository.update(user)
+    
