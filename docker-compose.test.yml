@@ -1,0 +1,16 @@
+services:
+  test-db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: test_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+
+  tests:
+    build: .
+    depends_on:
+      - test-db
+    environment:
+      ENV_FILE: .env.test
+      DATABASE_URL: postgresql+psycopg2://postgres:postgres@test-db:5432/test_db
+    command: pytest -q

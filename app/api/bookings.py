@@ -11,7 +11,7 @@ from app.services.permissions import check_booking_owner_or_admin
 router = APIRouter(prefix="/bookings", tags=["Bookings"])
 
 
-@router.post("",response_model=BookingResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=BookingResponse, status_code=status.HTTP_201_CREATED)
 def create_booking(
     data: BookingCreate,
     service: BookingService = Depends(get_booking_service),
@@ -33,7 +33,7 @@ def my_bookings(
     return service.get_by_user(current_user.id)
 
 
-@router.get("",response_model=list[BookingResponse])
+@router.get("", response_model=list[BookingResponse])
 def get_all_bookings(
     service: BookingService = Depends(get_booking_service),
     _: User = Depends(require_admin),
@@ -50,4 +50,3 @@ def delete_booking(
     booking = service.get_by_id(booking_id)
     check_booking_owner_or_admin(current_user, booking)
     service.delete_booking(booking_id)
-

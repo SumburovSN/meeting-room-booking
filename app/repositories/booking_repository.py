@@ -14,6 +14,13 @@ class BookingRepository:
             .first()
         )
 
+    def get_by_date(self, booking_date: date) -> list[Booking]:
+        return (
+            self.db.query(Booking)
+            .filter(Booking.booking_date == booking_date)
+            .all()
+        )
+
     def get_all(self) -> list[Booking]:
         return (
             self.db.query(Booking)

@@ -349,3 +349,105 @@ def test_delete_booking_not_found(
 
     with pytest.raises(BookingNotFoundError):
         service.delete_booking(1)
+
+
+# =========================
+# get_availability
+# =========================
+
+def test_get_availability(
+    service,
+    booking_repository,
+    room_repository,
+    time_slot_repository,
+):
+    booking_repository.get_by_date.return_value = [
+        Mock(time_slot_id=1)
+    ]
+
+    slot1 = Mock(
+        id=1,
+        room_id=10,
+        start_time=time(9, 0),
+        end_time=time(10, 0),
+    )
+
+    slot2 = Mock(
+        id=2,
+        room_id=10,
+        start_time=time(10, 0),
+        end_time=time(11, 0),
+    )
+
+    time_slot_repository.get_all.return_value = [
+        slot1,
+        slot2,
+    ]
+
+    room = Mock()
+    room.id = 10
+    room.name = "Room A"
+
+    room_repository.get_by_id.return_value = room
+
+    result = service.get_availability(
+        date(2026, 6, 17)
+    )
+
+    assert len(result) == 2
+
+    assert result[0] == {
+        "room_id": 10,
+        "room_name": "Room A",
+        "time_slot_id": 1,
+        "start_time": time(9, 0),
+        "end_time": time(10, 0),
+        "is_available": False,
+    }
+
+    assert result[1] == {
+        "room_id": 10,
+        "room_name": "Room A",
+        "time_slot_id": 2,
+        "start_time": time(10, 0),
+        "end_time": time(11, 0),
+        "is_available": True,
+    }
+
+    booking_repository.get_by_date.assert_called_once_with(
+        date(2026, 6, 17)
+    )
+
+    time_slot_repository.get_all.assert_called_once()
+
+    assert room_repository.get_by_id.call_count == 2
+
+
+def test_get_availability_no_bookings(
+    service,
+    booking_repository,
+    room_repository,
+    time_slot_repository,
+):
+    booking_repository.get_by_date.return_value = []
+
+    slot = Mock(
+        id=1,
+        room_id=10,
+        start_time=time(9, 0),
+        end_time=time(10, 0),
+    )
+
+    time_slot_repository.get_all.return_value = [slot]
+
+    room_repository.get_by_id.return_value = Mock(
+        id=10,
+        name="Room A",
+    )
+
+    result = service.get_availability(
+        date(2026, 6, 17)
+    )
+
+    assert len(result) == 1
+    assert result[0]["is_available"] is True

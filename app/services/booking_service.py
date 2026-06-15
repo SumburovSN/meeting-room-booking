@@ -28,6 +28,9 @@ class BookingService:
             raise BookingNotFoundError()
         return booking
 
+    def get_by_date(self, booking_date: date) -> list[Booking]:
+        return self.booking_repository.get_by_date(booking_date)
+
     def get_all(self) -> list[Booking]:
         return self.booking_repository.get_all()
 
@@ -68,3 +71,24 @@ class BookingService:
             raise BookingNotFoundError()
 
         self.booking_repository.delete(booking)
+
+    def get_availability(self, booking_date: date):
+        bookings = self.booking_repository.get_by_date(booking_date)
+        booked_slot_ids = {booking.time_slot_id for booking in bookings}
+        slots = self.time_slot_repository.get_all()
+        result = []
+
+        for slot in slots:
+            room = self.room_repository.get_by_id(slot.room_id)
+
+            result.append(
+                {
+                    "room_id": room.id,
+                    "room_name": room.name,
+                    "time_slot_id": slot.id,
+                    "start_time": slot.start_time,
+                    "end_time": slot.end_time,
+                    "is_available": slot.id not in booked_slot_ids,
+                }
+            )
+        return result

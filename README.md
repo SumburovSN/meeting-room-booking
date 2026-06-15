@@ -1,41 +1,54 @@
+Приложение BookRoom Service - Система бронирования комнат с указанием временных интервалов.
 
-Architecture
-Если бы мы делали "идеальный" Clean Architecture
+1. Установка из репозитория Git
+git clone https://github.com/SumburovSN/meeting-room-booking.git
+cd BookRoom
 
-Твой проект выглядел бы примерно так:
+2. Запуск из локального репозитория, созданного Git, с помощью poetry:
+Предварительная подготовка (обязательно):
+- применение миграции alembic
+poetry run alembic upgrade head
+- создать admin с данными как в .env.example или .env.docker (ADMIN_EMAIL=admin@bookroom.com ADMIN_PASSWORD=admin123)
+poetry run python -m scripts.create_admin
+- создать admin со своими email и password, например:
+ADMIN_EMAIL="эл. почта" ADMIN_PASSWORD="пароль" poetry run python -m scripts.create_admin
+Дополнительно можно:
+- заполнение таблиц rooms и time_slots данными по умолчанию как в data/rooms.csv:
+poetry run python -m scripts.rooms_time_slots_init
+- наименование полей rooms.csv: room_name,start_time,end_time,slot_minutes
+- можно указать путь к своему csv-файлу, например:
+ROOMS_CSV_PATH=путь к my_rooms.csv poetry run python -m scripts.rooms_time_slots_init
+Запуск приложения (сразу перенаправление на Swagger для удобства проверки):
+poetry run uvicorn app.main:app --reload
+Запуск тестов
+ENV_FILE=.env.test poetry run pytest tests
 
-app/
+3. Запуск с Docker (Приложение запускается по адресу http://localhost:8000):
+- Build & start API + DB:
+make up
+- Запуск миграций:
+make migrate
+- Создание admin:
+make admin
+- Заполнение данными (rooms + time_slots):
+make seed
+- Запуск тестов
+docker compose -f docker-compose.test.yml up --build --abort-on-container-exit
 
-├── domain/
-│   ├── entities/
-│   ├── exceptions/
-│   └── policies/
-│
-├── application/
-│   └── services/
-│
-├── infrastructure/
-│   ├── repositories/
-│   ├── database/
-│   └── security/
-│
-├── presentation/
-│   ├── api/
-│   └── schemas/
-│
-└── main.py
 
-Но для BookRoom это уже будет скорее усложнение ради архитектуры.
+4. Использованные технологии:
+- Python 3.12
+- Poetry
+- FastAPI 
+- PostgreSQL 17
+- SQLAlchemy
+- Alembic
+- Docker + Docker Compose
+- Pytest
 
-Для учебного проекта или pet-проекта я бы классифицировал твои текущие каталоги так:
-
-Каталог	Слой
-api	Presentation
-schemas	Presentation
-services	Application
-models	Domain + Persistence
-repositories	Infrastructure
-core	Infrastructure
-main.py	Composition Root
-
-И, на мой взгляд, для проекта уровня BookRoom это очень удачное разделение. Оно остается понятным, не перегружено абстракциями и при этом уже заметно лучше классического "всё в routers".
+5. Архитектура проекта
+- Слой Domain + Persistence: models;
+- Слой Application (use cases - бизнес логика): services;
+- Слой Infrastructure: repositories, core;
+- Слой Presentation: api, schemas;
+- Composition Root: main.py

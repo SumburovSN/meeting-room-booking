@@ -1,13 +1,15 @@
+from datetime import date
 from fastapi import APIRouter, Depends, status
 from app.dependencies.current_user import get_current_user
 from app.dependencies.roles import require_admin
-from app.dependencies.services import get_room_service
+from app.dependencies.services import get_room_service, get_booking_service
 from app.models.user import User
 from app.schemas.room import (
     RoomCreate,
     RoomUpdate,
     RoomResponse,
 )
+from app.services.booking_service import BookingService
 from app.services.room_service import RoomService
 
 
@@ -22,6 +24,16 @@ def create_room(
 ):
     require_admin(current_user)
     return service.create(data.name)
+
+
+@router.get("/availability")
+def get_availability(
+    booking_date: date,
+    service: BookingService = Depends(get_booking_service),
+    current_user: User = Depends(get_current_user),
+):
+    return service.get_availability(booking_date)
+
 
 
 @router.get("/{room_id}", response_model=RoomResponse)
