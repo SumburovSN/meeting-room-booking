@@ -1,11 +1,19 @@
 COMPOSE=docker compose
 
 APP=bookroom-api
+NETWORK=bookroom_default
+ENV_FILE=.env.docker
 
-.PHONY: up down build logs migrate seed admin test rebuild
+ADMIN_EMAIL ?= admin@bookroom.com
+ADMIN_PASSWORD ?= admin123
+
+.PHONY: up down build logs migrate seed admin rebuild
 
 up:
-	$(COMPOSE) up --build
+	$(COMPOSE) up --build -d
+
+stop:
+	$(COMPOSE) stop
 
 down:
 	$(COMPOSE) down -v
@@ -17,18 +25,26 @@ logs:
 	$(COMPOSE) logs -f
 
 migrate:
-	docker run --network=bookroom_default $(APP) migrate
+	docker run --rm \
+		--network=$(NETWORK) \
+		--env-file $(ENV_FILE) \
+		$(APP) migrate
 
 seed:
-	docker run --network=bookroom_default $(APP) seed
+	docker run --rm \
+		--network=$(NETWORK) \
+		--env-file $(ENV_FILE) \
+		$(APP) seed
 
 admin:
-	docker run --network=bookroom_default \
-		-e ADMIN_EMAIL=admin@bookroom.local \
-		-e ADMIN_PASSWORD=admin123 \
+	docker run --rm \
+		--network=$(NETWORK) \
+		--env-file $(ENV_FILE) \
+		-e ADMIN_EMAIL=$(ADMIN_EMAIL) \
+		-e ADMIN_PASSWORD=$(ADMIN_PASSWORD) \
 		$(APP) create-admin
 
 rebuild:
 	$(COMPOSE) down -v
 	$(COMPOSE) build --no-cache
-	$(COMPOSE) up
+	$(COMPOSE) up -d

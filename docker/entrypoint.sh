@@ -2,17 +2,16 @@
 
 set -e
 
-echo "Waiting for PostgreSQL..."
+DB_HOST=${DB_HOST:-db}
+DB_PORT=${DB_PORT:-5432}
 
-while ! nc -z db 5432; do
+echo "Waiting for PostgreSQL at ${DB_HOST}:${DB_PORT}..."
+
+while ! nc -z "$DB_HOST" "$DB_PORT"; do
   sleep 1
 done
 
 echo "PostgreSQL is ready"
-
-# -----------------------------
-# Command router
-# -----------------------------
 
 case "$1" in
 
@@ -26,15 +25,19 @@ case "$1" in
     exec alembic upgrade head
     ;;
 
-  seed)
-    echo "Seeding data..."
-    python scripts/rooms_time_slots_init.py
-    python scripts/create_admin.py
-    ;;
-
   create-admin)
     echo "Creating admin..."
-    python -m scripts.create_admin
+    exec python -m scripts.create_admin
+    ;;
+
+  seed)
+    echo "Seeding rooms and time slots..."
+    exec python -m scripts.rooms_time_slots_init
+    ;;
+
+  test)
+    echo "Running tests..."
+    exec pytest tests -v
     ;;
 
   *)

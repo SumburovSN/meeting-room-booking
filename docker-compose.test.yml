@@ -1,16 +1,33 @@
 services:
+
   test-db:
     image: postgres:17
+
     environment:
-      POSTGRES_DB: test_db
+      POSTGRES_DB: bookroom_test
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
 
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   tests:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+
     depends_on:
-      - test-db
+      test-db:
+        condition: service_healthy
+
     environment:
+      DB_HOST: test-db
       ENV_FILE: .env.test
-      DATABASE_URL: postgresql+psycopg2://postgres:postgres@test-db:5432/test_db
-    command: pytest -q
+      DATABASE_URL: postgresql+psycopg2://postgres:postgres@test-db:5432/bookroom_test
+
+    command: test
+
+    restart: "no"
