@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, status
 from app.dependencies.current_user import get_current_user
-from app.services.permissions import check_self_or_admin
-from app.dependencies.roles import require_admin
+from app.dependencies.roles import require_admin, require_owner_or_admin
 from app.dependencies.services import get_user_service
 from app.models.user import User
 from app.schemas.user import UserResponse, EmployeeCreate, UserUpdate
 from app.services.user_service import UserService
+
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -35,7 +35,7 @@ def update_user(
     current_user: User = Depends(get_current_user),
 ):
     user = service.get_by_id(user_id)
-    check_self_or_admin(current_user, user)
+    require_owner_or_admin(current_user, user_id)
     return service.update_user(user, data.email, data.password)
 
 
@@ -46,5 +46,5 @@ def delete_user(
     current_user: User = Depends(get_current_user),
 ):
     user = service.get_by_id(user_id)
-    check_self_or_admin(current_user, user)
+    require_owner_or_admin(current_user, user_id)
     service.deactivate_user(user)

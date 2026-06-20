@@ -7,5 +7,6 @@ engine = create_engine(settings.DATABASE_URL, pool_pre_ping=True, echo=False)
 
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False,class_=Session)
 
+
 class Base(DeclarativeBase):
     pass

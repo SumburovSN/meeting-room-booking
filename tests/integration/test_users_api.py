@@ -409,5 +409,3 @@ def test_admin_can_deactivate_any_user(client, db_session):
     db_session.refresh(employee)
 
     assert employee.is_active is False
-
-

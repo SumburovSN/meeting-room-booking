@@ -1,8 +1,8 @@
-"""init
+"""Initial migration
 
-Revision ID: b567986f9263
+Revision ID: e106fa993de5
 Revises: 
-Create Date: 2026-06-14 22:14:48.342765
+Create Date: 2026-06-19 19:37:33.337695
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'b567986f9263'
+revision: str = 'e106fa993de5'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -43,19 +43,17 @@ def upgrade() -> None:
     sa.Column('end_time', sa.Time(), nullable=False),
     sa.ForeignKeyConstraint(['room_id'], ['rooms.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('room_id', 'start_time', 'end_time', name='uq_room_time_slot')
+    sa.UniqueConstraint('room_id', 'start_time', name='uq_room_time_slot')
     )
     op.create_table('bookings',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
-    sa.Column('room_id', sa.Integer(), nullable=False),
     sa.Column('time_slot_id', sa.Integer(), nullable=False),
     sa.Column('booking_date', sa.Date(), nullable=False),
-    sa.ForeignKeyConstraint(['room_id'], ['rooms.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['time_slot_id'], ['time_slots.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('room_id', 'time_slot_id', 'booking_date', name='uq_room_slot_date')
+    sa.UniqueConstraint('time_slot_id', 'booking_date', name='uq_time_slot_date')
     )
     op.create_index(op.f('ix_bookings_booking_date'), 'bookings', ['booking_date'], unique=False)
     # ### end Alembic commands ###

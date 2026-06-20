@@ -19,7 +19,7 @@ class TimeSlot(Base):
         UniqueConstraint(
             "room_id",
             "start_time",
-            "end_time",
+            # "end_time",
             name="uq_room_time_slot",
         ),
     )

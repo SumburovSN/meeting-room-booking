@@ -5,6 +5,7 @@ from app.api.users import router as users_router
 from app.api.rooms import router as rooms_router
 from app.api.bookings import router as booking_router
 from app.api.time_slots import router as time_slot_router
+from app.api.availability import router as availability_router
 from app.api.exceptions import (invalid_credentials_handler, user_already_exists_handler, forbidden_operation_handler,
                                 user_not_found_handler, room_not_found_handler, room_already_exists_handler,
                                 invalid_room_time_slot_handler, slot_already_booked_handler, booking_not_found_handler,
@@ -16,6 +17,7 @@ from app.services.exceptions import (InvalidCredentialsError, UserAlreadyExistsE
 
 
 app = FastAPI(title="BookRoom")
+app.include_router(availability_router)
 app.include_router(auth_router)
 app.include_router(users_router)
 app.include_router(rooms_router)

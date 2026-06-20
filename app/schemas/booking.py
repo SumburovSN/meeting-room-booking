@@ -3,7 +3,6 @@ from pydantic import BaseModel, ConfigDict
 
 
 class BookingCreate(BaseModel):
-    room_id: int
     time_slot_id: int
     booking_date: date
 
@@ -11,7 +10,6 @@ class BookingCreate(BaseModel):
 class BookingResponse(BaseModel):
     id: int
     user_id: int
-    room_id: int
     time_slot_id: int
     booking_date: date
 

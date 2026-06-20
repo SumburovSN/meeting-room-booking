@@ -1,8 +1,10 @@
 from fastapi import Depends
 from sqlalchemy.orm import Session
 from app.dependencies.db import get_db
+from app.repositories.availability_repository import AvailabilityRepository
 from app.repositories.user_repository import UserRepository
 from app.services.auth_service import AuthService
+from app.services.availability_service import AvailabilityService
 from app.services.time_slot_service import TimeSlotService
 from app.services.user_service import UserService
 from app.repositories.room_repository import RoomRepository
@@ -30,7 +32,6 @@ def get_room_service(db: Session = Depends(get_db)) -> RoomService:
 def get_booking_service(db: Session = Depends(get_db)) -> BookingService:
     return BookingService(
         booking_repository=BookingRepository(db),
-        room_repository=RoomRepository(db),
         time_slot_repository=TimeSlotRepository(db),
         user_repository=UserRepository(db),
     )
@@ -38,3 +39,7 @@ def get_booking_service(db: Session = Depends(get_db)) -> BookingService:
 
 def get_time_slot_service(db: Session = Depends(get_db)) -> TimeSlotService:
     return TimeSlotService(slot_repository=TimeSlotRepository(db), room_repository=RoomRepository(db))
+
+
+def get_availability_service(db: Session = Depends(get_db)) -> AvailabilityService:
+    return AvailabilityService(availability_repository = AvailabilityRepository(db))

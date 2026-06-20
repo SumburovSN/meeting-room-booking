@@ -1,4 +1,4 @@
-# bash: ADMIN_EMAIL=admin@bookroom.com ADMIN_PASSWORD=admin123 poetry run python -m scripts.create_admin
+# bash: ADMIN_EMAIL=superadmin@bookroom.com ADMIN_PASSWORD=secret poetry run python -m scripts.create_admin
 
 from pydantic import ValidationError
 from sqlalchemy.orm import Session

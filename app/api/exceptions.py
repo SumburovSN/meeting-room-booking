@@ -12,7 +12,8 @@ from app.services.exceptions import (
     BookingNotFoundError,
     InvalidBookingDateError,
     TimeSlotNotFoundError,
-    TimeSlotOverlapError, InvalidTimeSlotError,
+    TimeSlotOverlapError,
+    InvalidTimeSlotError,
 )
 
 

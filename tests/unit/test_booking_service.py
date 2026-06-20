@@ -6,20 +6,14 @@ from app.services.booking_service import BookingService
 from app.services.exceptions import (
     BookingNotFoundError,
     SlotAlreadyBookedError,
-    InvalidRoomTimeSlotError,
     UserNotFoundError,
-    RoomNotFoundError,
     InvalidBookingDateError,
+    TimeSlotNotFoundError,
 )
 
 
 @pytest.fixture
 def booking_repository():
-    return Mock()
-
-
-@pytest.fixture
-def room_repository():
     return Mock()
 
 
@@ -36,13 +30,11 @@ def user_repository():
 @pytest.fixture
 def service(
     booking_repository,
-    room_repository,
     time_slot_repository,
     user_repository,
 ):
     return BookingService(
         booking_repository=booking_repository,
-        room_repository=room_repository,
         time_slot_repository=time_slot_repository,
         user_repository=user_repository,
     )
@@ -108,7 +100,6 @@ def test_create_booking_success(
     mock_datetime,
     service,
     user_repository,
-    room_repository,
     time_slot_repository,
     booking_repository,
 ):
@@ -116,21 +107,18 @@ def test_create_booking_success(
 
     user_repository.get_by_id.return_value = Mock(is_active=True)
 
-    room_repository.get_by_id.return_value = Mock()
-
     time_slot_repository.get_by_id.return_value = Mock(
         room_id=1,
         end_time=time(18, 0),
     )
 
-    booking_repository.get_by_room_slot_date.return_value = None
+    booking_repository.get_by_slot_date.return_value = None
 
     created_booking = Mock(spec=Booking)
     booking_repository.create.return_value = created_booking
 
     result = service.create_booking(
         user_id=1,
-        room_id=1,
         time_slot_id=1,
         booking_date=date.today(),
     )
@@ -149,7 +137,6 @@ def test_create_booking_user_not_found(
         service.create_booking(
             1,
             1,
-            1,
             date.today(),
         )
 
@@ -164,7 +151,6 @@ def test_create_booking_user_inactive(
 
     with pytest.raises(UserNotFoundError):
         service.create_booking(
-            1,
             1,
             1,
             date.today(),
@@ -183,74 +169,23 @@ def test_create_booking_past_date(
         service.create_booking(
             1,
             1,
-            1,
             date(2000, 1, 1),
-        )
-
-
-def test_create_booking_room_not_found(
-    service,
-    user_repository,
-    room_repository,
-):
-    user_repository.get_by_id.return_value = Mock(
-        is_active=True
-    )
-
-    room_repository.get_by_id.return_value = None
-
-    with pytest.raises(RoomNotFoundError):
-        service.create_booking(
-            1,
-            1,
-            1,
-            date.today(),
         )
 
 
 def test_create_booking_slot_not_found(
     service,
     user_repository,
-    room_repository,
     time_slot_repository,
 ):
     user_repository.get_by_id.return_value = Mock(
         is_active=True
     )
-
-    room_repository.get_by_id.return_value = Mock()
 
     time_slot_repository.get_by_id.return_value = None
 
-    with pytest.raises(InvalidRoomTimeSlotError):
+    with pytest.raises(TimeSlotNotFoundError):
         service.create_booking(
-            1,
-            1,
-            1,
-            date.today(),
-        )
-
-
-def test_create_booking_slot_belongs_to_other_room(
-    service,
-    user_repository,
-    room_repository,
-    time_slot_repository,
-):
-    user_repository.get_by_id.return_value = Mock(
-        is_active=True
-    )
-
-    room_repository.get_by_id.return_value = Mock()
-
-    time_slot_repository.get_by_id.return_value = Mock(
-        room_id=999,
-        end_time=time(18, 0),
-    )
-
-    with pytest.raises(InvalidRoomTimeSlotError):
-        service.create_booking(
-            1,
             1,
             1,
             date.today(),
@@ -262,7 +197,6 @@ def test_create_booking_slot_already_finished_today(
     mock_datetime,
     service,
     user_repository,
-    room_repository,
     time_slot_repository,
 ):
     mock_datetime.now.return_value.time.return_value = time(
@@ -274,8 +208,6 @@ def test_create_booking_slot_already_finished_today(
         is_active=True
     )
 
-    room_repository.get_by_id.return_value = Mock()
-
     time_slot_repository.get_by_id.return_value = Mock(
         room_id=1,
         end_time=time(14, 0),
@@ -283,7 +215,6 @@ def test_create_booking_slot_already_finished_today(
 
     with pytest.raises(InvalidBookingDateError):
         service.create_booking(
-            1,
             1,
             1,
             date.today(),
@@ -295,7 +226,6 @@ def test_create_booking_slot_already_booked(
     mock_datetime,
     service,
     user_repository,
-    room_repository,
     time_slot_repository,
     booking_repository,
 ):
@@ -303,8 +233,6 @@ def test_create_booking_slot_already_booked(
     user_repository.get_by_id.return_value = Mock(
         is_active=True
     )
-
-    room_repository.get_by_id.return_value = Mock()
 
     time_slot_repository.get_by_id.return_value = Mock(
         room_id=1,
@@ -315,7 +243,6 @@ def test_create_booking_slot_already_booked(
 
     with pytest.raises(SlotAlreadyBookedError):
         service.create_booking(
-            1,
             1,
             1,
             date.today(),
@@ -349,105 +276,3 @@ def test_delete_booking_not_found(
 
     with pytest.raises(BookingNotFoundError):
         service.delete_booking(1)
-
-
-# =========================
-# get_availability
-# =========================
-
-def test_get_availability(
-    service,
-    booking_repository,
-    room_repository,
-    time_slot_repository,
-):
-    booking_repository.get_by_date.return_value = [
-        Mock(time_slot_id=1)
-    ]
-
-    slot1 = Mock(
-        id=1,
-        room_id=10,
-        start_time=time(9, 0),
-        end_time=time(10, 0),
-    )
-
-    slot2 = Mock(
-        id=2,
-        room_id=10,
-        start_time=time(10, 0),
-        end_time=time(11, 0),
-    )
-
-    time_slot_repository.get_all.return_value = [
-        slot1,
-        slot2,
-    ]
-
-    room = Mock()
-    room.id = 10
-    room.name = "Room A"
-
-    room_repository.get_by_id.return_value = room
-
-    result = service.get_availability(
-        date(2026, 6, 17)
-    )
-
-    assert len(result) == 2
-
-    assert result[0] == {
-        "room_id": 10,
-        "room_name": "Room A",
-        "time_slot_id": 1,
-        "start_time": time(9, 0),
-        "end_time": time(10, 0),
-        "is_available": False,
-    }
-
-    assert result[1] == {
-        "room_id": 10,
-        "room_name": "Room A",
-        "time_slot_id": 2,
-        "start_time": time(10, 0),
-        "end_time": time(11, 0),
-        "is_available": True,
-    }
-
-    booking_repository.get_by_date.assert_called_once_with(
-        date(2026, 6, 17)
-    )
-
-    time_slot_repository.get_all.assert_called_once()
-
-    assert room_repository.get_by_id.call_count == 2
-
-
-def test_get_availability_no_bookings(
-    service,
-    booking_repository,
-    room_repository,
-    time_slot_repository,
-):
-    booking_repository.get_by_date.return_value = []
-
-    slot = Mock(
-        id=1,
-        room_id=10,
-        start_time=time(9, 0),
-        end_time=time(10, 0),
-    )
-
-    time_slot_repository.get_all.return_value = [slot]
-
-    room_repository.get_by_id.return_value = Mock(
-        id=10,
-        name="Room A",
-    )
-
-    result = service.get_availability(
-        date(2026, 6, 17)
-    )
-
-    assert len(result) == 1
-    assert result[0]["is_available"] is True

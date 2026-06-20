@@ -10,3 +10,14 @@ def require_admin(current_user: User = Depends(get_current_user)) -> User:
             detail="Admin access required",
         )
     return current_user
+
+
+def require_owner_or_admin(current_user: User, owner_id: int) -> User:
+    if current_user.role == UserRole.admin:
+        return current_user
+    if current_user.id == owner_id:
+        return current_user
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Admin or Owner access required",
+    )

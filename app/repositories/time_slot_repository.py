@@ -16,7 +16,7 @@ class TimeSlotRepository:
         )
 
     def get_all(self) -> list[TimeSlot]:
-        return self.db.query(TimeSlot).all()
+        return self.db.query(TimeSlot).order_by(TimeSlot.room_id, TimeSlot.start_time).all()
 
     def get_by_room_and_time(self, room_id: int, start_time: time, end_time: time) -> TimeSlot | None:
         return (

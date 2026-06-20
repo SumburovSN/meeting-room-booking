@@ -34,14 +34,6 @@ class BookingRepository:
             .all()
         )
 
-    def get_by_room_and_date(self, room_id: int, booking_date: date) -> list[Booking]:
-        return (
-            self.db.query(Booking)
-            .filter(Booking.room_id == room_id)
-            .filter(Booking.booking_date == booking_date)
-            .all()
-        )
-
     def create(self, booking: Booking) -> Booking:
         self.db.add(booking)
         self.db.commit()
@@ -52,10 +44,9 @@ class BookingRepository:
         self.db.delete(booking)
         self.db.commit()
 
-    def get_by_room_slot_date(self, room_id: int, time_slot_id: int, booking_date: date) -> Booking | None:
+    def get_by_slot_date(self, time_slot_id: int, booking_date: date) -> Booking | None:
         return (
             self.db.query(Booking)
-            .filter(Booking.room_id == room_id)
             .filter(Booking.time_slot_id == time_slot_id)
             .filter(Booking.booking_date == booking_date)
             .first()

@@ -7,7 +7,6 @@ from app.schemas.time_slot import (
     TimeSlotUpdate,
     TimeSlotResponse,
 )
-
 from app.services.time_slot_service import TimeSlotService
 from app.dependencies.services import get_time_slot_service
 
